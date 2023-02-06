@@ -1,7 +1,7 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
-include './src/Numero.php';
+use PHPUnit\Framework\TestCase; // <= También esta.
+include './src/Numero.php'; //Importante esta linea.
 
 class numeroTest extends TestCase {
 

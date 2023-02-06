@@ -1,39 +1,33 @@
-name: PHP Composer
+name: NUMERO #
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: [push] # Cuando hagas push
 
-permissions:
-  contents: read
+jobs: 
+  ci: #prueba 1
+    runs-on: ubuntu-latest #arranca maquina ubuntu
 
-jobs:
-  build:
-
-    runs-on: ubuntu-latest
+    steps: # haz esto
+      - uses: actions/checkout@v2
+      - name: PHPUnit Tests
+        uses: php-actions/phpunit@v1
+        env:
+          TEST_NAME: numeroTest # nombre del test
+        with:
+          configuration: test/phpunit.xml #mirar que se llame igual y que esté dentro de la carpeta test
+          args: --coverage-text
+  cd: #prueba 2
+    runs-on: ubuntu-latest #hace un ubuntu
+    needs: ci
 
     steps:
-    - uses: actions/checkout@v3
-
-    - name: Validate composer.json and composer.lock
-      run: composer validate --strict
-
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@v3
-      with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
-
-    - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
-
-    # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
-    # Docs: https://getcomposer.org/doc/articles/scripts.md
-
-    # - name: Run test suite
-    #   run: composer run-script test
+      - uses: actions/checkout@v1
+      - name: Docker Login #logea en dockerhub
+        run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }} 
+      - name: Build
+        run: | #construye un container
+          docker build -t ${{ secrets.DOCKER_USER }}/numerocicd:${{ github.sha }} . 
+          docker build -t ${{ secrets.DOCKER_USER }}/numerocicd:latest . 
+      - name: Push
+        run: |
+          docker push ${{ secrets.DOCKER_USER }}/numerocicd:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USER }}/numerocicd:latest    
